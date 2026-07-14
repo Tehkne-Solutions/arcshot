@@ -1,0 +1,17 @@
+{
+  "id": "impact-shot",
+  "type": "weapon",
+  "name": "Disparo de Impacto",
+  "description": "Projétil equilibrado, preciso e com forte empurrão.",
+  "color": "#66d7ff",
+  "damage": 34,
+  "blastRadius": 76,
+  "speed": 650,
+  "gravityScale": 1,
+  "projectileCount": 1,
+  "spreadDegrees": 0,
+  "pierce": 0,
+  "craterScale": 0.72,
+  "ammo": null,
+  "icon": "orb"
+}

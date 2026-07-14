@@ -1,0 +1,11 @@
+{
+  "id": "ranger",
+  "type": "character",
+  "name": "Caçadora",
+  "description": "Especialista em precisão, disparos rápidos e perfuração.",
+  "color": "#72e3a6",
+  "role": "precision",
+  "maxHealth": 92,
+  "moveRange": 172,
+  "silhouette": "ranger"
+}

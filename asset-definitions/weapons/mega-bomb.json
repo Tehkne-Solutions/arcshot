@@ -1,0 +1,17 @@
+{
+  "id": "mega-bomb",
+  "type": "weapon",
+  "name": "Megabomba",
+  "description": "Explosão ampla, terreno muito afetado e munição limitada.",
+  "color": "#ff785d",
+  "damage": 52,
+  "blastRadius": 118,
+  "speed": 570,
+  "gravityScale": 1.08,
+  "projectileCount": 1,
+  "spreadDegrees": 0,
+  "pierce": 0,
+  "craterScale": 1.05,
+  "ammo": 3,
+  "icon": "bomb"
+}

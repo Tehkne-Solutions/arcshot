@@ -1,0 +1,22 @@
+{
+  "name": "@arcshot/server",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "start": "tsx watch src/index.ts",
+    "build": "rimraf build && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@colyseus/core": "^0.17.31",
+    "@colyseus/schema": "^4.0.21",
+    "@colyseus/ws-transport": "^0.17.13",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "rimraf": "^6.0.1"
+  }
+}

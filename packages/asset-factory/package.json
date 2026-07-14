@@ -1,0 +1,13 @@
+{
+  "name": "@arcshot/asset-factory",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsx src/cli.ts build",
+    "validate": "tsx src/cli.ts validate",
+    "watch": "tsx src/cli.ts watch",
+    "clean": "tsx src/cli.ts clean",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}
