@@ -1,4 +1,5 @@
 {
+  "installCommand": "npm install --include=dev --no-audit --no-fund",
   "buildCommand": "npm run build -w @arcshot/game-core && npm run assets:build && npm run build -w @arcshot/game",
   "outputDirectory": "apps/game/dist",
   "framework": "vite",
