@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build -w @arcshot/game-core && npm run assets:build && npm run build -w @arcshot/game",
+  "outputDirectory": "apps/game/dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

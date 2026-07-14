@@ -1,0 +1,17 @@
+{
+  "id": "piercer",
+  "type": "weapon",
+  "name": "Perfurador",
+  "description": "Atravessa uma barreira antes de detonar.",
+  "color": "#ffd95e",
+  "damage": 38,
+  "blastRadius": 68,
+  "speed": 720,
+  "gravityScale": 0.84,
+  "projectileCount": 1,
+  "spreadDegrees": 0,
+  "pierce": 1,
+  "craterScale": 0.46,
+  "ammo": 3,
+  "icon": "drill"
+}

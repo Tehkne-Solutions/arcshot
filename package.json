@@ -1,0 +1,31 @@
+{
+  "name": "arcshot",
+  "version": "0.2.0",
+  "private": true,
+  "description": "ArcShot — artilharia tática em turnos pela Tehkné Solutions.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run assets:build && npm run build -w @arcshot/game-core && npm run dev -w @arcshot/game",
+    "dev:game": "npm run dev -w @arcshot/game",
+    "dev:server": "npm run start -w @arcshot/server",
+    "assets:build": "tsx packages/asset-factory/src/cli.ts build",
+    "assets:validate": "tsx packages/asset-factory/src/cli.ts validate",
+    "assets:watch": "tsx packages/asset-factory/src/cli.ts watch",
+    "assets:clean": "tsx packages/asset-factory/src/cli.ts clean",
+    "build": "npm run build -w @arcshot/game-core && npm run assets:build && npm run build -w @arcshot/game && npm run build -w @arcshot/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test -w @arcshot/game-core",
+    "check": "npm run assets:validate && npm run typecheck && npm run test && npm run build"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

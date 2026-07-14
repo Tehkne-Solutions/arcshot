@@ -1,0 +1,17 @@
+{
+  "id": "triple-shot",
+  "type": "weapon",
+  "name": "Disparo Triplo",
+  "description": "Três projéteis menores cobrem uma área maior.",
+  "color": "#b77cff",
+  "damage": 19,
+  "blastRadius": 58,
+  "speed": 625,
+  "gravityScale": 1,
+  "projectileCount": 3,
+  "spreadDegrees": 7,
+  "pierce": 0,
+  "craterScale": 0.52,
+  "ammo": 4,
+  "icon": "triple"
+}
