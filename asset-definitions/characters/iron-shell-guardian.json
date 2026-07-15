@@ -1,0 +1,14 @@
+{
+  "id": "iron-shell-guardian",
+  "type": "character",
+  "name": "Torga Casco-Ferro",
+  "description": "Guardião couraçado com escudo rúnico, casco mecânico e canhão de impacto.",
+  "color": "#42c9ff",
+  "role": "guardian",
+  "maxHealth": 128,
+  "moveRange": 118,
+  "silhouette": "bombardier",
+  "arenaTheme": "mystic-wilds",
+  "projectileStyle": "arc-orb",
+  "effectStyle": "arcane"
+}

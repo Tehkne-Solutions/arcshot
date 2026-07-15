@@ -1,0 +1,14 @@
+{
+  "id": "steam-orc-raider",
+  "type": "character",
+  "name": "Ghorz Vapor-Bruto",
+  "description": "Saqueador orc com bazuca de sucata, caldeira dorsal e golpes explosivos imprevisíveis.",
+  "color": "#f2a63b",
+  "role": "brawler",
+  "maxHealth": 118,
+  "moveRange": 150,
+  "silhouette": "ranger",
+  "arenaTheme": "sky-harbor",
+  "projectileStyle": "storm-shell",
+  "effectStyle": "ember-runes"
+}
