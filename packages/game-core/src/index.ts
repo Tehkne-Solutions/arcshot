@@ -3,3 +3,4 @@ export * from "./math.js";
 export * from "./ballistics.js";
 export * from "./ai.js";
 export * from "./damage.js";
+export * from "./charge.js";
