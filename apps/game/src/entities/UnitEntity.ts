@@ -25,7 +25,7 @@ export class UnitEntity {
     x: number,
     y: number,
     character: CharacterDefinition,
-    maxHealth: number,
+    readonly maxHealth: number,
     facing: 1 | -1,
   ) {
     this.character = character;
