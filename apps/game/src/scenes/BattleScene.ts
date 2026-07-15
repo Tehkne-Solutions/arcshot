@@ -3,7 +3,9 @@ import {
   calculateRadialDamage,
   clamp,
   findAimSolution,
+  rateChargeExecution,
   simulateTrajectory,
+  stepCharge,
   stepProjectile,
   velocityFromAim,
   type ProjectileState,
@@ -28,6 +30,12 @@ interface ActiveProjectile {
   alive: boolean;
 }
 
+interface PendingNpcShot {
+  angle: number;
+  power: number;
+  weapon: WeaponDefinition;
+}
+
 export class BattleScene extends Phaser.Scene {
   private readonly worldWidth = 1280;
   private readonly worldHeight = 720;
@@ -40,12 +48,22 @@ export class BattleScene extends Phaser.Scene {
   private projectiles: ActiveProjectile[] = [];
   private trajectoryGraphics!: Phaser.GameObjects.Graphics;
   private effectGraphics!: Phaser.GameObjects.Graphics;
+  private powerMeterGraphics!: Phaser.GameObjects.Graphics;
   private hudText!: Phaser.GameObjects.Text;
   private weaponText!: Phaser.GameObjects.Text;
   private bannerText!: Phaser.GameObjects.Text;
+  private powerMeterText!: Phaser.GameObjects.Text;
+  private turnTimerText!: Phaser.GameObjects.Text;
   private turn: "player" | "enemy" = "player";
   private angle = 45;
   private power = 68;
+  private chargePower = 22;
+  private chargeDirection: 1 | -1 = 1;
+  private chargeOwner: "player" | "enemy" | null = null;
+  private charging = false;
+  private pendingNpcShot?: PendingNpcShot;
+  private lastExecutionLabel = "PRONTO";
+  private turnTimeRemaining = 15;
   private wind = 0;
   private weaponIndex = 0;
   private ammo = new Map<string, number>();
@@ -76,6 +94,7 @@ export class BattleScene extends Phaser.Scene {
         barriers: 3,
       };
     }
+    this.turnTimeRemaining = this.getTurnDuration();
   }
 
   create(): void {
@@ -96,12 +115,27 @@ export class BattleScene extends Phaser.Scene {
     }
 
     this.trajectoryGraphics = this.add.graphics().setDepth(10);
-    this.effectGraphics = this.add.graphics().setDepth(20);
+    this.effectGraphics = this.add.graphics().setDepth(19);
+    this.powerMeterGraphics = this.add.graphics().setDepth(32);
     this.createHud();
     this.bindInputs();
     this.rollWind();
     this.updateHud();
     this.showBanner(this.mission.title, 1350);
+  }
+
+  private getTurnDuration(): number {
+    if (this.mode === "challenge") return 10;
+    if (this.mission.enemyProfile === "tactical") return 12;
+    if (this.mission.enemyProfile === "aggressive") return 14;
+    return 16;
+  }
+
+  private getPlayerChargeSpeed(): number {
+    if (this.mode === "challenge") return 118;
+    if (this.mission.enemyProfile === "tactical") return 105;
+    if (this.mission.enemyProfile === "aggressive") return 94;
+    return 82;
   }
 
   private createBackground(): void {
@@ -123,15 +157,29 @@ export class BattleScene extends Phaser.Scene {
     this.hudText = this.add.text(42, 34, "", {
       fontFamily: "Lexend", fontSize: "16px", color: "#dfeeff", lineSpacing: 7,
     }).setDepth(31);
+
     this.add.rectangle(470, 18, 788, 75, 0x091424, 0.92).setOrigin(0).setStrokeStyle(2, 0x31547c, 0.9).setDepth(30);
     this.weaponText = this.add.text(492, 34, "", {
       fontFamily: "Lexend", fontSize: "15px", color: "#dfeeff", wordWrap: { width: 740 },
     }).setDepth(31);
+
+    this.add.rectangle(470, 101, 788, 50, 0x07101d, 0.95).setOrigin(0).setStrokeStyle(2, 0x31547c, 0.9).setDepth(30);
+    this.powerMeterText = this.add.text(490, 104, "", {
+      fontFamily: "Lexend", fontSize: "12px", fontStyle: "bold", color: "#dfeeff",
+    }).setDepth(33);
+    this.turnTimerText = this.add.text(1238, 104, "", {
+      fontFamily: "Lexend", fontSize: "13px", fontStyle: "bold", color: "#ffcf59",
+    }).setOrigin(1, 0).setDepth(33);
+
     this.add.rectangle(22, 638, 1236, 60, 0x07101d, 0.94).setOrigin(0).setStrokeStyle(2, 0x263f61, 0.9).setDepth(30);
-    this.add.text(42, 658, "A/D mover   W/S ângulo   Q/E potência   1–4 armas   Espaço disparar   Tab mira rápida   R reiniciar   Esc menu", {
-      fontFamily: "Lexend", fontSize: "14px", color: "#8da5c1",
+    this.add.text(42, 651, "A/D mover   W/S ângulo   Q/E potência alvo   SEGURE/SOLTE Espaço para executar   Tab mira rápida   Esc menu", {
+      fontFamily: "Lexend", fontSize: "13px", color: "#8da5c1",
     }).setDepth(31);
-    this.bannerText = this.add.text(640, 180, "", {
+    this.add.text(42, 674, "A faixa azul é o alvo planejado. Solte o marcador dentro dela para reproduzir exatamente o arco previsto.", {
+      fontFamily: "Lexend", fontSize: "11px", color: "#617c9c",
+    }).setDepth(31);
+
+    this.bannerText = this.add.text(640, 190, "", {
       fontFamily: "Lexend", fontSize: "34px", fontStyle: "bold", color: "#ffffff",
       backgroundColor: "#07101ddd", padding: { x: 25, y: 14 }, align: "center",
     }).setOrigin(0.5).setDepth(50).setVisible(false);
@@ -158,7 +206,7 @@ export class BattleScene extends Phaser.Scene {
     }) as Record<string, Phaser.Input.Keyboard.Key>;
 
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      if (!this.canPlayerAct() || !this.quickAim) return;
+      if (!this.canPlayerAct() || !this.quickAim || this.charging) return;
       this.dragging = true;
       this.dragPoint.set(pointer.worldX, pointer.worldY);
     });
@@ -170,7 +218,8 @@ export class BattleScene extends Phaser.Scene {
       this.dragging = false;
       this.dragPoint.set(pointer.worldX, pointer.worldY);
       this.applyQuickAim();
-      this.fire(this.player);
+      this.lastExecutionLabel = "ARRASTO DIRETO";
+      this.fire(this.player, undefined, this.power);
     });
   }
 
@@ -187,8 +236,8 @@ export class BattleScene extends Phaser.Scene {
     const ammo = weapon.ammo === null ? "∞" : String(this.ammo.get(weapon.id) ?? 0);
     this.hudText.setText([
       `${this.turn === "player" ? "SEU TURNO" : "TURNO DO NPC"}  •  Rodada ${this.turnCount}`,
-      `Ângulo ${Math.round(this.angle)}°   Potência ${Math.round(this.power)}%`,
-      `Vento ${this.wind >= 0 ? "→" : "←"} ${Math.abs(Math.round(this.wind))}   Mira ${this.quickAim ? "RÁPIDA" : "TÁTICA"}`,
+      `Ângulo ${Math.round(this.angle)}°   Potência alvo ${Math.round(this.power)}%`,
+      `Vento ${this.wind >= 0 ? "→" : "←"} ${Math.abs(Math.round(this.wind))}   ${this.lastExecutionLabel}`,
     ]);
     this.weaponText.setText(`ARMA ${this.weaponIndex + 1}: ${weapon.name.toUpperCase()}  •  Munição ${ammo}\n${weapon.description}`);
   }
@@ -205,6 +254,8 @@ export class BattleScene extends Phaser.Scene {
   override update(_time: number, deltaMilliseconds: number): void {
     const delta = Math.min(deltaMilliseconds / 1000, 1 / 20);
     this.handleInput(delta);
+    this.updateTurnClock(delta);
+    this.updateCharge(delta);
     this.player.updatePhysics(delta, this.terrain);
     this.enemy.updatePhysics(delta, this.terrain);
 
@@ -215,6 +266,45 @@ export class BattleScene extends Phaser.Scene {
       this.accumulator -= fixed;
     }
     this.drawTrajectory();
+    this.drawPowerMeter();
+    this.drawAimArc();
+  }
+
+  private updateTurnClock(delta: number): void {
+    if (!this.canPlayerAct()) return;
+    this.turnTimeRemaining = Math.max(0, this.turnTimeRemaining - delta);
+    if (this.turnTimeRemaining > 0) return;
+
+    this.showBanner("TEMPO ESGOTADO", 700);
+    if (this.charging && this.chargeOwner === "player") {
+      this.releasePlayerCharge(true);
+      return;
+    }
+
+    const fallbackPower = clamp(this.power * 0.82, 22, 100);
+    this.lastExecutionLabel = "DISPARO FORÇADO";
+    this.fire(this.player, undefined, fallbackPower);
+  }
+
+  private updateCharge(delta: number): void {
+    if (!this.charging) return;
+
+    if (this.chargeOwner === "player") {
+      const next = stepCharge(
+        { value: this.chargePower, direction: this.chargeDirection },
+        this.getPlayerChargeSpeed(),
+        delta,
+      );
+      this.chargePower = next.value;
+      this.chargeDirection = next.direction;
+      return;
+    }
+
+    if (this.chargeOwner === "enemy" && this.pendingNpcShot) {
+      const npcSpeed = this.mission.enemyProfile === "tactical" ? 132 : this.mission.enemyProfile === "aggressive" ? 116 : 94;
+      this.chargePower = Math.min(this.pendingNpcShot.power, this.chargePower + npcSpeed * delta);
+      if (this.chargePower >= this.pendingNpcShot.power - 0.01) this.releaseNpcCharge();
+    }
   }
 
   private handleInput(delta: number): void {
@@ -222,10 +312,27 @@ export class BattleScene extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.keys.restart!)) this.scene.restart({ mode: this.mode, missionIndex: MISSIONS.findIndex((mission) => mission.id === this.mission.id) });
     if (!this.canPlayerAct()) return;
 
+    if (!this.quickAim && this.charging && Phaser.Input.Keyboard.JustUp(this.keys.fire!)) {
+      this.releasePlayerCharge();
+      return;
+    }
+
+    if (!this.quickAim && !this.charging && Phaser.Input.Keyboard.JustDown(this.keys.fire!)) {
+      this.startPlayerCharge();
+      return;
+    }
+
+    if (this.charging) {
+      this.updateHud();
+      return;
+    }
+
     if (Phaser.Input.Keyboard.JustDown(this.keys.mode!)) {
       this.quickAim = !this.quickAim;
       this.dragging = false;
+      this.lastExecutionLabel = this.quickAim ? "MIRA RÁPIDA" : "MIRA TÁTICA";
     }
+
     const weaponKeys = [this.keys.one, this.keys.two, this.keys.three, this.keys.four];
     weaponKeys.forEach((key, index) => {
       if (key && Phaser.Input.Keyboard.JustDown(key) && this.catalog.weapons[index]) this.weaponIndex = index;
@@ -234,8 +341,8 @@ export class BattleScene extends Phaser.Scene {
     if (!this.quickAim) {
       if (this.keys.angleUp?.isDown) this.angle = clamp(this.angle + 45 * delta, 8, 84);
       if (this.keys.angleDown?.isDown) this.angle = clamp(this.angle - 45 * delta, 8, 84);
-      if (this.keys.powerUp?.isDown) this.power = clamp(this.power + 55 * delta, 22, 100);
-      if (this.keys.powerDown?.isDown) this.power = clamp(this.power - 55 * delta, 22, 100);
+      if (this.keys.powerUp?.isDown) this.power = clamp(this.power + 52 * delta, 22, 100);
+      if (this.keys.powerDown?.isDown) this.power = clamp(this.power - 52 * delta, 22, 100);
     }
 
     const direction = Number(Boolean(this.keys.right?.isDown)) - Number(Boolean(this.keys.left?.isDown));
@@ -248,8 +355,51 @@ export class BattleScene extends Phaser.Scene {
       this.player.setFacing(direction > 0 ? 1 : -1);
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.fire!) && !this.quickAim) this.fire(this.player);
     this.updateHud();
+  }
+
+  private startPlayerCharge(): void {
+    const weapon = this.currentWeapon();
+    if (!this.hasAmmo(weapon)) {
+      this.showBanner("SEM MUNIÇÃO");
+      return;
+    }
+    this.charging = true;
+    this.chargeOwner = "player";
+    this.chargePower = 22;
+    this.chargeDirection = 1;
+    this.lastExecutionLabel = "CARREGANDO";
+    this.updateHud();
+  }
+
+  private releasePlayerCharge(forced = false): void {
+    if (!this.charging || this.chargeOwner !== "player") return;
+    const execution = rateChargeExecution(this.chargePower, this.power);
+    this.charging = false;
+    this.chargeOwner = null;
+
+    if (forced) {
+      this.lastExecutionLabel = `FORÇADO ${Math.round(execution.actual)}%`;
+    } else if (execution.rating === "perfect") {
+      this.lastExecutionLabel = `PERFEITO ±${execution.error.toFixed(1)}%`;
+      this.showBanner("EXECUÇÃO PERFEITA", 720);
+      this.pulseExecution(0x7fe7ff);
+    } else if (execution.rating === "good") {
+      this.lastExecutionLabel = `BOA ±${execution.error.toFixed(1)}%`;
+      this.showBanner("BOA EXECUÇÃO", 580);
+      this.pulseExecution(0xffcf59);
+    } else {
+      this.lastExecutionLabel = `DESVIO ${execution.error.toFixed(1)}%`;
+      this.showBanner("POTÊNCIA DESVIADA", 580);
+      this.pulseExecution(0xff765f);
+    }
+
+    this.fire(this.player, undefined, execution.actual);
+  }
+
+  private pulseExecution(color: number): void {
+    const pulse = this.add.circle(this.player.x, this.player.y - 18, 22, color, 0.18).setStrokeStyle(3, color, 0.9).setDepth(23);
+    this.tweens.add({ targets: pulse, scale: 2.7, alpha: 0, duration: 420, ease: "Cubic.Out", onComplete: () => pulse.destroy() });
   }
 
   private applyQuickAim(): void {
@@ -268,10 +418,11 @@ export class BattleScene extends Phaser.Scene {
     if (!this.canPlayerAct()) return;
     if (this.quickAim && this.dragging) this.applyQuickAim();
     const weapon = this.currentWeapon();
+    const previewPower = this.charging && this.chargeOwner === "player" ? this.chargePower : this.power;
     const origin = { x: this.player.x + this.player.facing * 34, y: this.player.y - 22 };
     const trajectory = simulateTrajectory({
       angle: this.angle,
-      power: this.power,
+      power: previewPower,
       facing: this.player.facing,
       origin,
       weapon,
@@ -279,11 +430,70 @@ export class BattleScene extends Phaser.Scene {
       maxSteps: 180,
       stopWhen: (point) => point.x < 0 || point.x > this.worldWidth || point.y > this.worldHeight || this.terrain.isSolid(point.x, point.y),
     });
-    trajectory.filter((_, index) => index % 7 === 0).forEach((point, index) => {
-      this.trajectoryGraphics.fillStyle(index % 2 === 0 ? 0x7fe5ff : 0xffffff, 0.72).fillCircle(point.x, point.y, Math.max(2, 5 - index * 0.08));
+
+    trajectory.filter((_, index) => index % 6 === 0).forEach((point, index) => {
+      const chargingAlpha = this.charging ? 0.94 : 0.68;
+      this.trajectoryGraphics.fillStyle(index % 2 === 0 ? 0x7fe5ff : 0xffffff, chargingAlpha)
+        .fillCircle(point.x, point.y, Math.max(2, 5 - index * 0.075));
     });
+
     if (this.quickAim && this.dragging) {
       this.trajectoryGraphics.lineStyle(4, 0xffcf59, 0.9).lineBetween(this.player.x, this.player.y - 12, this.dragPoint.x, this.dragPoint.y);
+    }
+  }
+
+  private drawAimArc(): void {
+    this.effectGraphics.clear();
+    if (!this.canPlayerAct()) return;
+    const radians = Phaser.Math.DegToRad(this.angle);
+    const start = this.player.facing > 0 ? 0 : Math.PI;
+    const end = this.player.facing > 0 ? -radians : Math.PI + radians;
+    this.effectGraphics.lineStyle(this.charging ? 5 : 3, this.charging ? 0xffcf59 : 0x67dcff, this.charging ? 0.95 : 0.62);
+    this.effectGraphics.beginPath();
+    this.effectGraphics.arc(this.player.x, this.player.y - 14, 58, start, end, this.player.facing > 0);
+    this.effectGraphics.strokePath();
+  }
+
+  private drawPowerMeter(): void {
+    this.powerMeterGraphics.clear();
+    const x = 490;
+    const y = 128;
+    const width = 640;
+    const height = 13;
+    const minPower = 22;
+    const maxPower = 100;
+    const toX = (value: number): number => x + ((clamp(value, minPower, maxPower) - minPower) / (maxPower - minPower)) * width;
+    const markerPower = this.charging ? this.chargePower : this.power;
+    const targetPower = this.chargeOwner === "enemy" && this.pendingNpcShot ? this.pendingNpcShot.power : this.power;
+
+    this.powerMeterGraphics.fillStyle(0x12233a, 1).fillRoundedRect(x, y, width, height, 6);
+    this.powerMeterGraphics.fillStyle(0xb64646, 0.82).fillRoundedRect(x, y, width * 0.34, height, 6);
+    this.powerMeterGraphics.fillStyle(0xd3a53f, 0.82).fillRect(x + width * 0.34, y, width * 0.35, height);
+    this.powerMeterGraphics.fillStyle(0x4bbf88, 0.82).fillRoundedRect(x + width * 0.69, y, width * 0.31, height, 6);
+
+    if (this.turn === "player") {
+      const zoneStart = toX(targetPower - 6);
+      const zoneEnd = toX(targetPower + 6);
+      const perfectStart = toX(targetPower - 2.5);
+      const perfectEnd = toX(targetPower + 2.5);
+      this.powerMeterGraphics.fillStyle(0x67dcff, 0.28).fillRect(zoneStart, y - 4, Math.max(3, zoneEnd - zoneStart), height + 8);
+      this.powerMeterGraphics.fillStyle(0xffffff, 0.42).fillRect(perfectStart, y - 6, Math.max(2, perfectEnd - perfectStart), height + 12);
+    }
+
+    const markerX = toX(markerPower);
+    this.powerMeterGraphics.lineStyle(3, 0xffffff, 1).lineBetween(markerX, y - 7, markerX, y + height + 7);
+    this.powerMeterGraphics.fillStyle(this.chargeOwner === "enemy" ? 0xff765f : 0xffffff, 1)
+      .fillTriangle(markerX - 7, y - 9, markerX + 7, y - 9, markerX, y - 1);
+
+    if (this.chargeOwner === "enemy") {
+      this.powerMeterText.setText(`NPC CARREGANDO  ${Math.round(markerPower)}%`);
+      this.turnTimerText.setText("PRESSÃO ADVERSÁRIA").setColor("#ff8c78");
+    } else if (this.charging) {
+      this.powerMeterText.setText(`EXECUÇÃO ${Math.round(markerPower)}%   •   ALVO ${Math.round(targetPower)}%`);
+      this.turnTimerText.setText(`${Math.ceil(this.turnTimeRemaining)}s`).setColor(this.turnTimeRemaining <= 4 ? "#ff765f" : "#ffcf59");
+    } else {
+      this.powerMeterText.setText(`POTÊNCIA ALVO ${Math.round(targetPower)}%   •   SEGURE FOGO E SOLTE NA FAIXA`);
+      this.turnTimerText.setText(this.turn === "player" ? `${Math.ceil(this.turnTimeRemaining)}s` : "NPC").setColor(this.turnTimeRemaining <= 4 ? "#ff765f" : "#ffcf59");
     }
   }
 
@@ -291,12 +501,16 @@ export class BattleScene extends Phaser.Scene {
     return weapon.ammo === null || (this.ammo.get(weapon.id) ?? 0) > 0;
   }
 
-  private fire(owner: UnitEntity, aiAngle?: number, aiPower?: number, aiWeapon?: WeaponDefinition): void {
+  private fire(owner: UnitEntity, aiAngle?: number, aiPower?: number, aiWeapon?: WeaponDefinition): boolean {
     const weapon = aiWeapon ?? this.currentWeapon();
     if (!this.hasAmmo(weapon)) {
       if (owner === this.player) this.showBanner("SEM MUNIÇÃO");
-      return;
+      return false;
     }
+
+    this.charging = false;
+    this.chargeOwner = null;
+    this.pendingNpcShot = undefined;
     if (weapon.ammo !== null) this.ammo.set(weapon.id, Math.max(0, (this.ammo.get(weapon.id) ?? 0) - 1));
     this.shotInProgress = true;
     this.finishScheduled = false;
@@ -305,6 +519,7 @@ export class BattleScene extends Phaser.Scene {
     const shotPower = aiPower ?? this.power;
     const origin = { x: owner.x + owner.facing * 36, y: owner.y - 24 };
     const count = Math.max(1, weapon.projectileCount);
+
     for (let index = 0; index < count; index += 1) {
       const offset = (index - (count - 1) / 2) * weapon.spreadDegrees;
       const view = this.add.image(origin.x, origin.y, weapon.assetKey).setDisplaySize(30, 30).setDepth(16);
@@ -321,8 +536,10 @@ export class BattleScene extends Phaser.Scene {
         alive: true,
       });
     }
-    this.cameras.main.shake(90, 0.0025);
+
+    this.cameras.main.shake(105, 0.0035);
     this.updateHud();
+    return true;
   }
 
   private updateProjectiles(delta: number): void {
@@ -391,20 +608,26 @@ export class BattleScene extends Phaser.Scene {
   private finishTurn(): void {
     this.finishScheduled = false;
     this.shotInProgress = false;
+    this.charging = false;
+    this.chargeOwner = null;
+    this.pendingNpcShot = undefined;
     this.player.settle(this.terrain);
     this.enemy.settle(this.terrain);
     if (this.checkOutcome()) return;
 
     if (this.turn === "player") {
       this.turn = "enemy";
-      this.showBanner("TURNO DO NPC", 750);
-      this.time.delayedCall(750, () => this.performNpcTurn());
+      this.lastExecutionLabel = "NPC ANALISANDO";
+      this.showBanner("TURNO DO NPC", 650);
+      this.time.delayedCall(520, () => this.performNpcTurn());
     } else {
       this.turn = "player";
       this.turnCount += 1;
       this.movementLeft = 145;
+      this.turnTimeRemaining = this.getTurnDuration();
+      this.lastExecutionLabel = "PLANEJE E EXECUTE";
       this.rollWind();
-      this.showBanner("SEU TURNO", 700);
+      this.showBanner("SEU TURNO", 620);
     }
     this.updateHud();
   }
@@ -417,6 +640,7 @@ export class BattleScene extends Phaser.Scene {
       : this.mission.enemyProfile === "tactical"
         ? weaponPool.find((item) => item.id === "piercer") ?? weaponPool[0]!
         : weaponPool[0]!;
+
     this.enemy.setFacing(this.player.x < this.enemy.x ? -1 : 1);
     const precision = this.mission.enemyProfile === "tactical" ? "precise" : this.mission.enemyProfile === "aggressive" ? "balanced" : "fast";
     const solution = findAimSolution({
@@ -428,8 +652,33 @@ export class BattleScene extends Phaser.Scene {
       precision,
       collides: (point) => this.terrain.isSolid(point.x, point.y),
     });
-    const inaccuracy = this.mission.enemyProfile === "rookie" ? Phaser.Math.FloatBetween(-6, 6) : this.mission.enemyProfile === "aggressive" ? Phaser.Math.FloatBetween(-2.8, 2.8) : Phaser.Math.FloatBetween(-1.1, 1.1);
-    this.fire(this.enemy, clamp(solution.angle + inaccuracy, 8, 84), clamp(solution.power + inaccuracy, 25, 100), weapon);
+
+    const inaccuracy = this.mission.enemyProfile === "rookie"
+      ? Phaser.Math.FloatBetween(-6, 6)
+      : this.mission.enemyProfile === "aggressive"
+        ? Phaser.Math.FloatBetween(-2.8, 2.8)
+        : Phaser.Math.FloatBetween(-1.1, 1.1);
+
+    this.pendingNpcShot = {
+      angle: clamp(solution.angle + inaccuracy, 8, 84),
+      power: clamp(solution.power + inaccuracy, 25, 100),
+      weapon,
+    };
+    this.charging = true;
+    this.chargeOwner = "enemy";
+    this.chargePower = 22;
+    this.chargeDirection = 1;
+    this.lastExecutionLabel = "NPC CARREGANDO";
+    this.updateHud();
+  }
+
+  private releaseNpcCharge(): void {
+    const pending = this.pendingNpcShot;
+    if (!pending || this.chargeOwner !== "enemy") return;
+    this.charging = false;
+    this.chargeOwner = null;
+    this.pendingNpcShot = undefined;
+    this.fire(this.enemy, pending.angle, pending.power, pending.weapon);
   }
 
   private checkOutcome(): boolean {
