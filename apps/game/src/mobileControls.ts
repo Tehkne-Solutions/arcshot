@@ -71,13 +71,13 @@ export function installMobileControls(): void {
     <div class="touch-cluster touch-adjustments" aria-label="Ajustes do disparo">
       <button type="button" data-key="angleDown" data-hold aria-label="Diminuir ângulo">Â−</button>
       <button type="button" data-key="angleUp" data-hold aria-label="Aumentar ângulo">Â+</button>
-      <button type="button" data-key="powerDown" data-hold aria-label="Diminuir potência">P−</button>
-      <button type="button" data-key="powerUp" data-hold aria-label="Aumentar potência">P+</button>
+      <button type="button" data-key="powerDown" data-hold aria-label="Diminuir potência alvo">ALVO−</button>
+      <button type="button" data-key="powerUp" data-hold aria-label="Aumentar potência alvo">ALVO+</button>
     </div>
 
     <div class="touch-cluster touch-actions" aria-label="Ações">
       <button type="button" class="touch-secondary" data-key="mode" aria-label="Alternar modo de mira">MIRA</button>
-      <button type="button" class="touch-fire" data-key="fire" aria-label="Disparar">FOGO</button>
+      <button type="button" class="touch-fire" data-key="fire" data-hold aria-label="Segure para carregar e solte para disparar">SEGURE<br>FOGO</button>
     </div>
 
     <button type="button" class="touch-menu" data-key="menu" aria-label="Voltar ao menu">MENU</button>
