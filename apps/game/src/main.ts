@@ -1,32 +1,25 @@
-import Phaser from "phaser";
 import "./style.css";
-import { BootScene } from "./scenes/BootScene";
-import { MenuScene } from "./scenes/MenuScene";
-import { BattleScene } from "./scenes/BattleScene";
+import { installMobileControls } from "./mobileControls";
 
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  parent: "app",
-  width: 1280,
-  height: 720,
-  backgroundColor: "#07101e",
-  scene: [BootScene, MenuScene, BattleScene],
-  render: {
-    antialias: true,
-    pixelArt: false,
-    roundPixels: false,
-  },
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 1280,
-    height: 720,
-  },
-  input: {
-    keyboard: true,
-    mouse: true,
-    touch: true,
-  },
-};
+const app = document.getElementById("app");
+if (!app) throw new Error("Elemento raiz #app não encontrado.");
 
-new Phaser.Game(config);
+const bootStatus = document.createElement("div");
+bootStatus.className = "boot-status";
+bootStatus.innerHTML = `
+  <strong>ARCSHOT</strong>
+  <span>Inicializando campo de batalha...</span>
+`;
+app.append(bootStatus);
+
+installMobileControls();
+window.addEventListener("arcshot:ready", () => bootStatus.remove(), { once: true });
+
+void import("./game").catch((error: unknown) => {
+  console.error("Falha ao iniciar ArcShot", error);
+  bootStatus.classList.add("boot-status-error");
+  bootStatus.innerHTML = `
+    <strong>FALHA AO INICIAR</strong>
+    <span>Recarregue a página. Se o problema continuar, consulte o console.</span>
+  `;
+});
