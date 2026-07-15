@@ -50,7 +50,8 @@ const drawTorga = (graphics: Phaser.GameObjects.Graphics, color: number): void =
   graphics.fillStyle(0x0c1925, 1).fillCircle(84, 119, 40);
   graphics.lineStyle(7, 0xb88b45, 1).strokeCircle(84, 119, 40);
   graphics.lineStyle(4, color, 0.9).strokeCircle(84, 119, 27);
-  graphics.fillStyle(0xa8f3ff, 1).fillDiamond(84, 119, 16, 24);
+  graphics.fillStyle(0xa8f3ff, 1).fillTriangle(84, 107, 72, 119, 96, 119);
+  graphics.fillTriangle(84, 131, 72, 119, 96, 119);
   graphics.fillStyle(0x202c3d, 1).fillRoundedRect(121, 83, 67, 36, 14);
   graphics.lineStyle(5, color, 1).strokeRoundedRect(121, 83, 67, 36, 14);
   graphics.fillStyle(0xc6f7ff, 0.95).fillCircle(184, 101, 13);
