@@ -1,0 +1,14 @@
+{
+  "id": "storm-corsair",
+  "type": "character",
+  "name": "Kael Corsário da Tormenta",
+  "description": "Pirata arcano de casaco longo, pistola-canhão e munição elétrica.",
+  "color": "#39d4ff",
+  "role": "trickster",
+  "maxHealth": 98,
+  "moveRange": 176,
+  "silhouette": "storm-corsair",
+  "arenaTheme": "sky-harbor",
+  "projectileStyle": "storm-shell",
+  "effectStyle": "storm"
+}

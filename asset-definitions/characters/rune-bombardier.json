@@ -1,0 +1,14 @@
+{
+  "id": "rune-bombardier",
+  "type": "character",
+  "name": "Brask Forja-Runa",
+  "description": "Anão artilheiro que mistura pólvora, runas e uma fornalha portátil.",
+  "color": "#ff7a45",
+  "role": "artillery",
+  "maxHealth": 112,
+  "moveRange": 132,
+  "silhouette": "rune-dwarf",
+  "arenaTheme": "arcane-forge",
+  "projectileStyle": "rune-bomb",
+  "effectStyle": "ember-runes"
+}
