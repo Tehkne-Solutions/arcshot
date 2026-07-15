@@ -1,0 +1,14 @@
+{
+  "id": "celestial-marksman",
+  "type": "character",
+  "name": "Lyra Olho-Celeste",
+  "description": "Atiradora veloz com rifle místico, visor estelar e propulsores arcanos.",
+  "color": "#d8c4ff",
+  "role": "precision",
+  "maxHealth": 90,
+  "moveRange": 188,
+  "silhouette": "sky-marksman",
+  "arenaTheme": "storm-ruins",
+  "projectileStyle": "star-bolt",
+  "effectStyle": "celestial"
+}
