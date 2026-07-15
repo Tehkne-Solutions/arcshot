@@ -1,7 +1,8 @@
 import Phaser from "phaser";
 import { BootScene } from "./scenes/BootScene";
-import { MenuScene } from "./scenes/MenuScene";
-import { BattleScene } from "./scenes/BattleScene";
+import { ResponsiveBattleScene, ResponsiveMenuScene } from "./scenes/ResponsiveScenes";
+
+document.body.dataset.arcshotScene = "boot";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -9,7 +10,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 1280,
   height: 720,
   backgroundColor: "#07101e",
-  scene: [BootScene, MenuScene, BattleScene],
+  scene: [BootScene, ResponsiveMenuScene, ResponsiveBattleScene],
   render: {
     antialias: true,
     pixelArt: false,
