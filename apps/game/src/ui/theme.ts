@@ -17,11 +17,10 @@ export interface ArcshotUiPalette {
   readonly accentSoft: number;
   readonly success: number;
   readonly danger: number;
-  readonly disabledFill: number;
+  readonly disabled: number;
   readonly text: string;
   readonly muted: string;
   readonly softText: string;
-  readonly disabled: string;
 }
 
 const STORAGE_KEY = "arcshot:ui-theme";
@@ -44,11 +43,10 @@ export const ARCSHOT_THEMES: Record<ArcshotTheme, ArcshotUiPalette> = {
     accentSoft: 0xffe7ad,
     success: 0x27b975,
     danger: 0xe35656,
-    disabledFill: 0x94a5bb,
+    disabled: 0x94a5bb,
     text: "#14233a",
     muted: "#526984",
     softText: "#7186a1",
-    disabled: "#94a5bb",
   },
   dark: {
     isLight: false,
@@ -67,11 +65,10 @@ export const ARCSHOT_THEMES: Record<ArcshotTheme, ArcshotUiPalette> = {
     accentSoft: 0x674f24,
     success: 0x48d597,
     danger: 0xff6b6b,
-    disabledFill: 0x61718a,
+    disabled: 0x61718a,
     text: "#f4f7ff",
     muted: "#a8b7d6",
     softText: "#7f93b4",
-    disabled: "#61718a",
   },
 };
 
