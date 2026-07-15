@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { ARCSHOT_THEMES, getArcshotTheme } from "../ui/theme";
 
 export class BootScene extends Phaser.Scene {
   constructor() { super("BootScene"); }
@@ -6,29 +7,46 @@ export class BootScene extends Phaser.Scene {
   preload(): void {
     const width = this.scale.width;
     const height = this.scale.height;
+    const palette = ARCSHOT_THEMES[getArcshotTheme()];
 
     const backdrop = this.add.graphics();
-    backdrop.fillGradientStyle(0x120a22, 0x120a22, 0x27143f, 0x09101f, 1);
+    backdrop.fillGradientStyle(
+      palette.backgroundTop,
+      palette.backgroundTop,
+      palette.backgroundBottom,
+      palette.backgroundBottom,
+      1,
+    );
     backdrop.fillRect(0, 0, width, height);
+    backdrop.fillStyle(palette.backgroundGlow, palette.isLight ? 0.16 : 0.24).fillCircle(width * 0.5, height * 0.42, 270);
+
+    const crest = this.add.circle(width / 2, height / 2 - 122, 34, palette.primary, 1)
+      .setStrokeStyle(5, palette.isLight ? 0xffffff : palette.accent, 0.9);
+    this.add.text(crest.x, crest.y, "A", {
+      fontFamily: "Lexend",
+      fontSize: "28px",
+      fontStyle: "bold",
+      color: "#ffffff",
+    }).setOrigin(0.5);
 
     const title = this.add.text(width / 2, height / 2 - 58, "ARCSHOT", {
       fontFamily: "Lexend",
       fontSize: "62px",
       fontStyle: "bold",
-      color: "#f7d78f",
-      stroke: "#4a260d",
-      strokeThickness: 6,
+      color: palette.text,
+      stroke: palette.isLight ? "#ffffff" : "#10182b",
+      strokeThickness: palette.isLight ? 2 : 5,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height / 2 + 12, "Forjando o campo de batalha...", {
+    this.add.text(width / 2, height / 2 + 12, "Preparando o campo de batalha...", {
       fontFamily: "Lexend",
       fontSize: "18px",
-      color: "#d7c7ff",
+      color: palette.muted,
     }).setOrigin(0.5);
 
-    const frame = this.add.rectangle(width / 2, height / 2 + 72, 390, 16, 0x07101e, 0.95)
-      .setStrokeStyle(3, 0xb77a2c, 1);
-    const bar = this.add.rectangle(width / 2 - 190, height / 2 + 72, 0, 10, 0x67dcff)
+    const frame = this.add.rectangle(width / 2, height / 2 + 72, 390, 16, palette.panelAlt, 1)
+      .setStrokeStyle(3, palette.borderStrong, 0.9);
+    const bar = this.add.rectangle(width / 2 - 190, height / 2 + 72, 0, 10, palette.primary)
       .setOrigin(0, 0.5);
 
     this.load.on("progress", (progress: number) => {
@@ -37,7 +55,7 @@ export class BootScene extends Phaser.Scene {
 
     this.load.on("loaderror", () => {
       title.setText("ERRO AO CARREGAR ASSETS");
-      frame.setStrokeStyle(3, 0xff765f, 1);
+      frame.setStrokeStyle(3, palette.danger, 1);
     });
 
     this.load.pack("arcshot-pack", "assets/generated/asset-pack.json");
