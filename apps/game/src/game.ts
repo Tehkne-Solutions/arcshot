@@ -1,7 +1,10 @@
 import Phaser from "phaser";
 import { BootScene } from "./scenes/BootScene";
-import { MissionBriefingScene } from "./scenes/MissionBriefingScene";
-import { ResponsiveBattleScene, ResponsiveMenuScene } from "./scenes/ResponsiveScenes";
+import {
+  ResponsiveBattleScene,
+  ResponsiveMenuScene,
+  ResponsiveMissionBriefingScene,
+} from "./scenes/ResponsiveScenes";
 
 document.body.dataset.arcshotScene = "boot";
 
@@ -11,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 1280,
   height: 720,
   backgroundColor: "#07101e",
-  scene: [BootScene, ResponsiveMenuScene, MissionBriefingScene, ResponsiveBattleScene],
+  scene: [BootScene, ResponsiveMenuScene, ResponsiveMissionBriefingScene, ResponsiveBattleScene],
   render: {
     antialias: true,
     pixelArt: false,
