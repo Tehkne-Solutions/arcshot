@@ -1,5 +1,8 @@
 import "./style.css";
 import { installMobileControls } from "./mobileControls";
+import { initialiseArcshotTheme } from "./ui/theme";
+
+initialiseArcshotTheme();
 
 const app = document.getElementById("app");
 if (!app) throw new Error("Elemento raiz #app não encontrado.");
