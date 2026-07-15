@@ -13,7 +13,6 @@ export class AnimatedBattlefield {
   private readonly backgroundGlow: Phaser.GameObjects.Image;
   private readonly water: Phaser.GameObjects.TileSprite;
   private readonly vignette: Phaser.GameObjects.Graphics;
-  private readonly hudOverlay: Phaser.GameObjects.Image;
   private readonly particles: AmbientParticle[] = [];
   private readonly lightningFlash: Phaser.GameObjects.Rectangle;
   private lightningClock = 0;
@@ -30,8 +29,8 @@ export class AnimatedBattlefield {
       .setDepth(-12);
 
     this.backgroundGlow = scene.add.image(width / 2, height / 2, "premium-arena-storm")
-      .setDisplaySize(width + 28, height + 22)
-      .setAlpha(0.12)
+      .setDisplaySize(width + 18, height + 14)
+      .setAlpha(0.08)
       .setTint(0xbda1ff)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(-11);
@@ -42,12 +41,12 @@ export class AnimatedBattlefield {
       .setTint(0x9fdcff)
       .setDepth(1);
 
-    const horizonMist = scene.add.rectangle(width / 2, 470, width, 250, 0x5a3a77, 0.12)
+    const horizonMist = scene.add.rectangle(width / 2, 470, width, 250, 0x5a3a77, 0.1)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(-4);
     scene.tweens.add({
       targets: horizonMist,
-      alpha: { from: 0.06, to: 0.17 },
+      alpha: { from: 0.045, to: 0.14 },
       duration: 2200,
       yoyo: true,
       repeat: -1,
@@ -56,11 +55,6 @@ export class AnimatedBattlefield {
 
     this.vignette = scene.add.graphics().setDepth(28);
     this.drawVignette();
-
-    this.hudOverlay = scene.add.image(width / 2, height / 2, "premium-hud-overlay")
-      .setDisplaySize(width, height)
-      .setDepth(30.5)
-      .setAlpha(0.98);
 
     this.lightningFlash = scene.add.rectangle(width / 2, height / 2, width, height, 0xc5b7ff, 0)
       .setBlendMode(Phaser.BlendModes.ADD)
@@ -72,12 +66,12 @@ export class AnimatedBattlefield {
 
   private drawVignette(): void {
     this.vignette.clear();
-    this.vignette.fillStyle(0x050712, 0.48);
-    this.vignette.fillRect(0, 0, this.width, 18);
-    this.vignette.fillRect(0, this.height - 18, this.width, 18);
-    this.vignette.fillRect(0, 0, 18, this.height);
-    this.vignette.fillRect(this.width - 18, 0, 18, this.height);
-    this.vignette.lineStyle(2, 0xb9782d, 0.7);
+    this.vignette.fillStyle(0x050712, 0.34);
+    this.vignette.fillRect(0, 0, this.width, 12);
+    this.vignette.fillRect(0, this.height - 12, this.width, 12);
+    this.vignette.fillRect(0, 0, 12, this.height);
+    this.vignette.fillRect(this.width - 12, 0, 12, this.height);
+    this.vignette.lineStyle(2, 0xb9782d, 0.62);
     this.vignette.strokeRoundedRect(8, 8, this.width - 16, this.height - 16, 12);
   }
 
@@ -130,10 +124,10 @@ export class AnimatedBattlefield {
     const time = timeMilliseconds / 1000;
     const windFactor = Phaser.Math.Clamp(wind / 82, -1, 1);
 
-    this.background.x = this.width / 2 + Math.sin(time * 0.08) * 7;
-    this.background.y = this.height / 2 + Math.cos(time * 0.06) * 4;
-    this.backgroundGlow.x = this.width / 2 - Math.sin(time * 0.065) * 9;
-    this.backgroundGlow.alpha = 0.09 + Math.sin(time * 0.45) * 0.025;
+    this.background.x = this.width / 2 + Math.sin(time * 0.08) * 5;
+    this.background.y = this.height / 2 + Math.cos(time * 0.06) * 3;
+    this.backgroundGlow.x = this.width / 2 - Math.sin(time * 0.065) * 7;
+    this.backgroundGlow.alpha = 0.065 + Math.sin(time * 0.45) * 0.018;
 
     this.water.tilePositionX += (8 + windFactor * 9) * deltaSeconds;
     this.water.tilePositionY = Math.sin(time * 0.7) * 3;
@@ -178,7 +172,7 @@ export class AnimatedBattlefield {
     if (style === "storm" || style === "celestial") this.triggerLightning();
     this.scene.tweens.add({
       targets: this.backgroundGlow,
-      alpha: Math.min(0.32, 0.12 + intensity * 0.08),
+      alpha: Math.min(0.26, 0.09 + intensity * 0.07),
       duration: 90,
       yoyo: true,
       ease: "Quad.Out",
@@ -190,7 +184,6 @@ export class AnimatedBattlefield {
     this.backgroundGlow.destroy();
     this.water.destroy();
     this.vignette.destroy();
-    this.hudOverlay.destroy();
     this.lightningFlash.destroy();
     for (const particle of this.particles) particle.object.destroy();
     this.particles.length = 0;

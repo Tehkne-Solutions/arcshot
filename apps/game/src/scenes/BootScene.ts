@@ -62,7 +62,6 @@ export class BootScene extends Phaser.Scene {
 
     const premium = "assets/premium";
     this.load.image("premium-arena-storm", `${premium}/arena-storm-citadel.webp`);
-    this.load.image("premium-hud-overlay", `${premium}/hud-ornate-overlay.webp`);
     this.load.image("premium-brask", `${premium}/brask-forja-runa.png`);
     this.load.image("premium-kael", `${premium}/kael-corsario.png`);
     this.load.image("premium-terrain", `${premium}/terrain-rune-rock.webp`);
