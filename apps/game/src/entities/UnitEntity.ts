@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { clamp, type CharacterDefinition } from "@arcshot/game-core";
 import type { TerrainSystem } from "../systems/TerrainSystem";
+import { resolveCharacterArt } from "../ui/characterArt";
 
 export class UnitEntity {
   readonly container: Phaser.GameObjects.Container;
@@ -36,9 +37,9 @@ export class UnitEntity {
     this.facing = facing;
     this.phase = id === "player" ? 0 : Math.PI;
 
-    const premiumTexture = this.resolvePremiumTexture(character.id);
-    const texture = premiumTexture ?? character.assetKey;
-    this.premium = premiumTexture !== null;
+    const resolvedArt = resolveCharacterArt(scene, character);
+    const texture = resolvedArt.textureKey;
+    this.premium = resolvedArt.premium;
 
     const color = Phaser.Display.Color.HexStringToColor(
       character.color ?? (id === "player" ? "#67dcff" : "#ff735e"),
@@ -119,12 +120,6 @@ export class UnitEntity {
       this.healthBar,
       this.label,
     ]).setDepth(12);
-  }
-
-  private resolvePremiumTexture(characterId: string): string | null {
-    if (characterId === "rune-bombardier" && this.scene.textures.exists("premium-brask")) return "premium-brask";
-    if (characterId === "storm-corsair" && this.scene.textures.exists("premium-kael")) return "premium-kael";
-    return null;
   }
 
   get x(): number { return this.container.x; }

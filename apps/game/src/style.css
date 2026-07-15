@@ -2,55 +2,74 @@
 
 :root {
   font-family: "Lexend", system-ui, sans-serif;
-  color: #f5f0e8;
-  background: #05040b;
   font-synthesis: none;
+  --page-bg-top: #eef7ff;
+  --page-bg-bottom: #dbe8ff;
+  --page-glow: rgb(47 108 255 / 18%);
+  --surface: rgb(255 255 255 / 94%);
+  --surface-strong: #ffffff;
+  --surface-alt: #eaf2ff;
+  --text: #14233a;
+  --muted: #526984;
+  --primary: #2f6cff;
+  --primary-soft: rgb(47 108 255 / 16%);
+  --accent: #f2ad35;
+  --border: rgb(97 126 167 / 32%);
+  --touch-bg-top: rgb(255 255 255 / 96%);
+  --touch-bg-bottom: rgb(226 238 255 / 94%);
+  --touch-text: #14233a;
+  --shadow: rgb(35 73 128 / 22%);
+  color: var(--text);
+  background: var(--page-bg-bottom);
+  color-scheme: light;
+}
+
+:root[data-arcshot-theme="dark"] {
+  --page-bg-top: #091020;
+  --page-bg-bottom: #050812;
+  --page-glow: rgb(105 87 255 / 24%);
+  --surface: rgb(16 27 47 / 94%);
+  --surface-strong: #14213a;
+  --surface-alt: #0d1729;
+  --text: #f4f7ff;
+  --muted: #a8b7d6;
+  --primary: #67dcff;
+  --primary-soft: rgb(103 220 255 / 16%);
+  --accent: #ffc857;
+  --border: rgb(103 220 255 / 24%);
+  --touch-bg-top: rgb(24 46 76 / 94%);
+  --touch-bg-bottom: rgb(8 20 38 / 94%);
+  --touch-text: #eff9ff;
+  --shadow: rgb(0 0 0 / 42%);
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 html, body, #app { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-
 body {
   background:
-    radial-gradient(circle at 50% 12%, rgb(86 46 128 / 48%), transparent 37%),
-    radial-gradient(circle at 82% 45%, rgb(45 59 145 / 28%), transparent 38%),
-    linear-gradient(180deg, #11091c, #04050b 72%);
+    radial-gradient(circle at 50% 8%, var(--page-glow) 0, transparent 38%),
+    linear-gradient(180deg, var(--page-bg-top), var(--page-bg-bottom));
   overscroll-behavior: none;
+  transition: background 220ms ease;
 }
-
-#app {
-  position: relative;
-  display: grid;
-  place-items: center;
-  isolation: isolate;
-}
-
+#app { position: relative; display: grid; place-items: center; padding: 10px; isolation: isolate; }
 #app::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent, rgb(255 183 72 / 5%), transparent),
-    repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / 1.5%) 4px);
-  mix-blend-mode: screen;
-  opacity: .38;
+  background: radial-gradient(circle at 85% 15%, var(--primary-soft), transparent 34%);
+  opacity: .8;
 }
-
 canvas {
   display: block;
-  max-width: calc(100vw - 10px);
-  max-height: calc(100vh - 10px);
+  max-width: 100%;
+  max-height: 100%;
   touch-action: none;
-  border: 2px solid #9c6727;
-  border-radius: 10px;
-  box-shadow:
-    0 0 0 1px rgb(255 214 130 / 24%),
-    0 24px 70px rgb(0 0 0 / 72%),
-    0 0 44px rgb(91 44 151 / 28%);
+  border-radius: 18px;
+  box-shadow: 0 22px 70px var(--shadow), 0 0 0 1px var(--border);
 }
-
 button { font: inherit; }
 
 .boot-status {
@@ -61,20 +80,19 @@ button { font: inherit; }
   place-content: center;
   gap: 10px;
   text-align: center;
+  color: var(--text);
   background:
-    radial-gradient(circle at center, rgb(70 36 102 / 92%), transparent 38%),
-    linear-gradient(180deg, rgb(14 8 27 / 97%), rgb(3 5 12 / 99%));
+    radial-gradient(circle at center, var(--primary-soft), transparent 40%),
+    linear-gradient(180deg, var(--page-bg-top), var(--page-bg-bottom));
 }
-
 .boot-status strong {
   font-size: clamp(34px, 8vw, 72px);
   letter-spacing: .08em;
-  color: #f3cf80;
-  text-shadow: 0 2px 0 #5c2e0e, 0 0 24px rgb(113 208 255 / 35%);
+  color: var(--text);
+  text-shadow: 0 8px 30px var(--shadow);
 }
-
-.boot-status span { color: #c7b5dc; font-size: clamp(13px, 2.5vw, 18px); }
-.boot-status-error strong { color: #ff8c78; }
+.boot-status span { color: var(--muted); font-size: clamp(13px, 2.5vw, 18px); }
+.boot-status-error strong { color: #e35656; }
 
 .touch-controls {
   --touch-size: clamp(48px, 7.5vw, 66px);
@@ -88,39 +106,30 @@ button { font: inherit; }
   touch-action: none;
   transition: opacity 160ms ease;
 }
-
 body[data-arcshot-scene="battle"] .touch-controls {
   opacity: 1;
   visibility: visible;
 }
-
 .touch-controls button {
   width: var(--touch-size);
   height: var(--touch-size);
-  border: 2px solid #b77a2c;
-  border-radius: 14px;
-  color: #fff7e8;
-  background:
-    linear-gradient(180deg, rgb(31 38 57 / 95%), rgb(6 13 26 / 96%));
-  box-shadow:
-    0 8px 24px rgb(0 0 0 / 52%),
-    inset 0 0 0 1px rgb(255 224 157 / 20%),
-    inset 0 1px 0 rgb(255 255 255 / 13%);
-  text-shadow: 0 2px 2px #000;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--touch-text);
+  background: linear-gradient(180deg, var(--touch-bg-top), var(--touch-bg-bottom));
+  box-shadow: 0 8px 24px var(--shadow), inset 0 1px 0 rgb(255 255 255 / 28%);
   pointer-events: auto;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 100ms ease, border-color 100ms ease, filter 100ms ease;
 }
-
-.touch-controls button::first-letter { color: #ffd26f; }
-
+.touch-controls button:hover { filter: brightness(1.04); }
 .touch-controls button.is-pressed {
   transform: translateY(2px) scale(.96);
-  border-color: #ffe39b;
-  background: linear-gradient(180deg, rgb(114 69 23 / 98%), rgb(48 24 8 / 96%));
-  box-shadow: 0 2px 8px rgb(0 0 0 / 55%), 0 0 16px rgb(255 177 55 / 38%);
+  border-color: var(--accent);
+  background: linear-gradient(180deg, var(--touch-bg-top), var(--touch-bg-bottom));
+  filter: saturate(1.25) brightness(.94);
 }
-
 .touch-cluster,
 .touch-weapons {
   position: fixed;
@@ -128,65 +137,49 @@ body[data-arcshot-scene="battle"] .touch-controls {
   gap: 8px;
   pointer-events: none;
 }
-
 .touch-movement {
   left: max(12px, env(safe-area-inset-left));
   bottom: max(12px, env(safe-area-inset-bottom));
   grid-template-columns: repeat(2, var(--touch-size));
 }
-
 .touch-adjustments {
   left: 50%;
   bottom: max(10px, env(safe-area-inset-bottom));
   grid-template-columns: repeat(4, var(--touch-size));
   transform: translateX(-50%);
 }
-
 .touch-actions {
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
   grid-template-columns: var(--touch-size) calc(var(--touch-size) * 1.25);
   align-items: end;
 }
-
 .touch-actions .touch-fire {
   width: calc(var(--touch-size) * 1.25);
   height: calc(var(--touch-size) * 1.25);
   border-radius: 50%;
-  border-color: #ffd36c;
-  background:
-    radial-gradient(circle at 35% 25%, #fff2b0, #ffb22f 25%, #d14a22 64%, #54131e);
-  color: #231205;
+  border-color: rgb(255 201 77 / 90%);
+  background: radial-gradient(circle at 35% 25%, #ffe07a, #ff9b38 52%, #df4e32);
+  color: #281706;
   font-size: clamp(11px, 1.8vw, 16px);
   font-weight: 800;
-  text-shadow: 0 1px 0 rgb(255 255 255 / 40%);
-  box-shadow:
-    0 8px 26px rgb(0 0 0 / 55%),
-    0 0 24px rgb(255 119 41 / 45%),
-    inset 0 0 0 2px rgb(255 239 183 / 45%);
+  box-shadow: 0 10px 30px rgb(223 78 50 / 30%), inset 0 2px 0 rgb(255 255 255 / 48%);
 }
-
 .touch-actions .touch-secondary {
   align-self: end;
   font-size: clamp(9px, 1.5vw, 12px);
 }
-
 .touch-weapons {
   top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
   grid-template-columns: repeat(4, calc(var(--touch-size) * .72));
 }
-
 .touch-weapons button {
   width: calc(var(--touch-size) * .72);
   height: calc(var(--touch-size) * .72);
-  border-radius: 9px;
+  border-radius: 13px;
   font-weight: 800;
-  background:
-    radial-gradient(circle at 45% 35%, rgb(67 134 177 / 65%), transparent 38%),
-    linear-gradient(180deg, rgb(35 42 61 / 97%), rgb(8 13 24 / 98%));
 }
-
 .touch-menu {
   position: fixed;
   top: max(12px, env(safe-area-inset-top));
@@ -197,7 +190,6 @@ body[data-arcshot-scene="battle"] .touch-controls {
   border-radius: 999px !important;
   font-size: 11px;
 }
-
 .orientation-hint {
   display: none;
   position: fixed;
@@ -206,13 +198,14 @@ body[data-arcshot-scene="battle"] .touch-controls {
   place-content: center;
   padding: 32px;
   text-align: center;
-  color: #f8ecd1;
-  background:
-    radial-gradient(circle, rgb(70 36 102 / 92%), rgb(3 5 12 / 98%));
+  color: var(--text);
+  background: var(--surface-strong);
   pointer-events: auto;
 }
 
 @media (max-height: 540px) {
+  #app { padding: 0; }
+  canvas { border-radius: 0; }
   .touch-controls { --touch-size: clamp(44px, 11vh, 58px); }
   .touch-adjustments { gap: 6px; }
 }
@@ -225,5 +218,5 @@ body[data-arcshot-scene="battle"] .touch-controls {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .touch-controls { transition: none; }
+  body, .touch-controls, .touch-controls button { transition: none; }
 }
