@@ -31,6 +31,10 @@ export interface WeaponDefinition {
   assetKey: string;
 }
 
+export type ArenaTheme = "arcane-forge" | "sky-harbor" | "storm-ruins" | "mystic-wilds";
+export type ProjectileStyle = "rune-bomb" | "storm-shell" | "star-bolt" | "arc-orb" | "hunter-shot";
+export type EffectStyle = "ember-runes" | "storm" | "celestial" | "arcane" | "nature";
+
 export interface CharacterDefinition {
   id: string;
   name: string;
@@ -39,6 +43,10 @@ export interface CharacterDefinition {
   maxHealth: number;
   moveRange: number;
   assetKey: string;
+  color?: string;
+  arenaTheme?: ArenaTheme;
+  projectileStyle?: ProjectileStyle;
+  effectStyle?: EffectStyle;
 }
 
 export interface AimSolution {
