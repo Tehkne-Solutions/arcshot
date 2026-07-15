@@ -33,7 +33,11 @@ export class TerrainSystem {
     private readonly worldHeight: number,
   ) {
     this.textureKey = `premium-terrain-${scene.sys.settings.key}-${Date.now()}`;
-    this.texture = scene.textures.createCanvas(this.textureKey, worldWidth, worldHeight);
+    const texture = scene.textures.createCanvas(this.textureKey, worldWidth, worldHeight);
+    if (!texture) {
+      throw new Error(`Não foi possível criar a textura dinâmica do terreno: ${this.textureKey}`);
+    }
+    this.texture = texture;
     this.context = this.texture.getContext();
     this.image = scene.add.image(0, 0, this.textureKey).setOrigin(0).setDepth(4);
     this.edgeGraphics = scene.add.graphics().setDepth(5);
